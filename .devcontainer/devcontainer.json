@@ -1,0 +1,25 @@
+{
+  "name": "claude proxy",
+
+  // https://github.com/devcontainers/images/tree/main/src/go
+  "image": "mcr.microsoft.com/devcontainers/go:2-1.25-bookworm",
+
+  // Configure tool-specific properties.
+  "customizations": {
+    "vscode": {
+      "extensions": ["esbenp.prettier-vscode"],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh"
+      }
+    }
+  },
+
+  "postCreateCommand": "sudo chown -R vscode /go",
+
+  "remoteUser": "vscode",
+
+  "mounts": [
+    // Move go modules cache into dedicated volume to improve disk I/O performance
+    "source=go-mod-cache-${devcontainerId},target=/go/pkg/mod,type=volume"
+  ]
+}
