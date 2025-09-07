@@ -1,0 +1,40 @@
+# Editor/IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Configuration files with secrets
+.env
+.env.local
+
+# Logs
+*.log
+logs/
+
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+bin/
+dist/
+
+# Test binary, built with `go test -c`
+*.test
+
+# Code coverage profiles and other test artifacts
+*.out
+coverage.*
+*.coverprofile
+profile.cov
+coverage/
+
+# Go workspace file
+go.work
+go.work.sum
+
+/TODO.md
