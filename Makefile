@@ -29,6 +29,7 @@ lint:
 
 audit:
 	$(GO) vet ./...
+	$(GO) tool govulncheck ./...
 
 clean:
 	rm -f $(BINARY_NAME)
