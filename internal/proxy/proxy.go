@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net"
 	"net/http"
 	"net/http/httputil"
@@ -40,10 +41,15 @@ func New(baseURL string) (*Proxy, error) {
 		FlushInterval: -1,
 	}
 
+	logger := slog.Default()
+
 	mux := http.NewServeMux()
 
 	// Forward proxy to Anthropic Messages API
-	mux.Handle("POST "+upstream.Path+"/messages", reverseProxyHandler)
+	mux.Handle("POST "+upstream.Path+"/messages", applyMiddlewares(reverseProxyHandler,
+		Logging(logger),
+		Recovery,
+	))
 
 	return &Proxy{mux: mux}, nil
 }
