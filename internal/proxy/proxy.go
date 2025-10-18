@@ -11,6 +11,8 @@ import (
 	"net/url"
 	"time"
 
+	"golang.org/x/oauth2"
+
 	"localhost/claude-proxy/internal/observability/middleware"
 )
 
@@ -23,12 +25,14 @@ type Proxy struct {
 // Compile-time check that Proxy implements http.Handler
 var _ http.Handler = (*Proxy)(nil)
 
-// New creates a forward proxy.
-func New(baseURL string) (*Proxy, error) {
+// New creates a forward proxy configured for Anthropic API.
+func New(ts oauth2.TokenSource, baseURL string) (*Proxy, error) {
 	upstream, err := url.Parse(baseURL)
 	if err != nil {
 		return nil, fmt.Errorf("invalid upstream URL: %w", err)
 	}
+
+	transport := &oauth2.Transport{Source: ts}
 
 	// Build reverse proxy for Anthropic API
 	reverseProxyHandler := &httputil.ReverseProxy{
@@ -41,6 +45,7 @@ func New(baseURL string) (*Proxy, error) {
 		// This eliminates buffering delays, critical for streaming responses (SSE) where clients
 		// expect immediate data as soon as the upstream API sends it.
 		FlushInterval: -1,
+		Transport:     transport,
 	}
 
 	logger := slog.Default()

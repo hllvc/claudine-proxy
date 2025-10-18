@@ -7,9 +7,12 @@ import (
 	"log/slog"
 	"time"
 
+	"golang.org/x/oauth2"
 	"golang.org/x/sync/errgroup"
 
 	"localhost/claude-proxy/internal/proxy"
+	anthropictokensource "localhost/claude-proxy/internal/tokensource"
+	"localhost/claude-proxy/internal/tokenstore"
 )
 
 // App orchestrates the lifecycle of the proxy server and related services.
@@ -19,7 +22,13 @@ type App struct {
 
 // New creates a new App instance.
 func New() (*App, error) {
-	proxyServer, err := proxy.New("https://api.anthropic.com/v1")
+	// I/O deferred to first Token() call
+	tokenSource, err := newTokenSource()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create token source: %w", err)
+	}
+
+	proxyServer, err := proxy.New(tokenSource, "https://api.anthropic.com/v1")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create proxy: %w", err)
 	}
@@ -84,4 +93,19 @@ func (a *App) Start(ctx context.Context) error {
 
 	slog.Info("application stopped")
 	return nil
+}
+
+// newTokenSource creates a PersistentTokenSource from application configuration.
+// No I/O is performed - TokenSource creation is deferred to first Token() call.
+func newTokenSource() (*PersistentTokenSource, error) {
+	store, err := tokenstore.NewFileStore("./auth")
+	if err != nil {
+		return nil, fmt.Errorf("failed to create token store: %w", err)
+	}
+
+	factory := func(token string) oauth2.TokenSource {
+		return anthropictokensource.NewTokenSource(token, anthropictokensource.Endpoint)
+	}
+
+	return NewPersistentTokenSource(factory, store)
 }
