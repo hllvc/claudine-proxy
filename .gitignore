@@ -36,5 +36,3 @@ coverage/
 # Go workspace file
 go.work
 go.work.sum
-
-/TODO.md
