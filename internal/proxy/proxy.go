@@ -18,6 +18,11 @@ import (
 	"github.com/florianilch/claudine-proxy/internal/observability/middleware"
 )
 
+const (
+	// defaultBaseURL is the production Anthropic API endpoint
+	defaultBaseURL = "https://api.anthropic.com/v1"
+)
+
 // Proxy represents the forward proxy server
 type Proxy struct {
 	mux    *http.ServeMux
@@ -27,18 +32,67 @@ type Proxy struct {
 // Compile-time check that Proxy implements http.Handler
 var _ http.Handler = (*Proxy)(nil)
 
+// config holds internal proxy configuration applied via Options.
+type config struct {
+	baseURL   string
+	transport http.RoundTripper
+}
+
+// Option configures the proxy
+type Option func(*config)
+
+// WithTransport sets a custom transport (timeouts, TLS, connection pooling).
+func WithTransport(rt http.RoundTripper) Option {
+	return func(c *config) {
+		c.transport = rt
+	}
+}
+
+// WithBaseURL overrides the default upstream URL.
+func WithBaseURL(baseURL string) Option {
+	return func(c *config) {
+		c.baseURL = baseURL
+	}
+}
+
+// DefaultTransport returns a new http.Transport configured for API requirements.
+// Clones http.DefaultTransport and adds ResponseHeaderTimeout to prevent indefinite hangs.
+// Returns a fresh instance on each call to prevent accidental mutation.
+//
+// Modify the returned transport for custom timeout or connection settings:
+//
+//	transport := proxy.DefaultTransport()
+//	transport.ResponseHeaderTimeout = 60 * time.Second
+//	proxy.New(ts, proxy.WithTransport(transport))
+func DefaultTransport() *http.Transport {
+	t := http.DefaultTransport.(*http.Transport).Clone()
+	t.ResponseHeaderTimeout = 30 * time.Second // Outbound: Wait for Anthropic response headers (prevents indefinite hangs)
+	return t
+}
+
 // New creates a forward proxy configured for Anthropic API.
-func New(ts oauth2.TokenSource, baseURL string) (*Proxy, error) {
-	upstream, err := url.Parse(baseURL)
+func New(ts oauth2.TokenSource, opts ...Option) (*Proxy, error) {
+	cfg := &config{
+		baseURL:   defaultBaseURL,
+		transport: DefaultTransport(),
+	}
+
+	for _, opt := range opts {
+		opt(cfg)
+	}
+
+	upstream, err := url.Parse(cfg.baseURL)
 	if err != nil {
 		return nil, fmt.Errorf("invalid upstream URL: %w", err)
 	}
 
 	// Compose transport chain (request execution order):
-	// oauth2.Transport → ImpersonationTransport
+	// oauth2.Transport → ImpersonationTransport → cfg.transport
 	transport := &oauth2.Transport{
 		Source: ts,
-		Base:   &ImpersonationTransport{},
+		Base: &ImpersonationTransport{
+			Base: cfg.transport,
+		},
 	}
 
 	// Build reverse proxy for Anthropic API

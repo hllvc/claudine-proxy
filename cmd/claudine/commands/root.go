@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"os"
 
 	"github.com/florianilch/claudine-proxy/internal/app"
 	"github.com/florianilch/claudine-proxy/internal/observability"
@@ -16,6 +17,11 @@ func Execute(ctx context.Context, args []string) error {
 		Name:  "claudine",
 		Usage: "Anthropic OAuth Ambassador",
 		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:    "config",
+				Aliases: []string{"c"},
+				Usage:   "path to config file",
+			},
 			&cli.StringFlag{
 				Name:  "log-level",
 				Usage: "log level (debug|info|warn|error)",
@@ -32,13 +38,27 @@ func Execute(ctx context.Context, args []string) error {
 
 func proxyStartCommand() *cli.Command {
 	return &cli.Command{
-		Name:  "start",
-		Usage: "Starts the proxy",
+		Name: "start",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:  "log-format",
 				Usage: "log format (text|json)",
-				Value: "text",
+				Value: string(app.DefaultConfigLogFormat),
+			},
+			&cli.StringFlag{
+				Name:  "server--host",
+				Usage: "server host",
+				Value: app.DefaultConfigServerHost,
+			},
+			&cli.IntFlag{
+				Name:  "server--port",
+				Usage: "server port",
+				Value: int(app.DefaultConfigServerPort),
+			},
+			&cli.StringFlag{
+				Name:  "upstream--base-url",
+				Usage: "upstream API base URL",
+				Value: app.DefaultConfigUpstreamBaseURL,
 			},
 		},
 		Action: proxyStartAction,
@@ -46,19 +66,18 @@ func proxyStartCommand() *cli.Command {
 }
 
 func proxyStartAction(ctx context.Context, cmd *cli.Command) error {
-	var level slog.Level
-	err := level.UnmarshalText([]byte(cmd.String("log-level")))
+	cfg, err := loadConfig(cmd.String("config"), cmd, os.Environ)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to load config: %w", err)
 	}
 
 	// Set up observability before creating app
-	err = observability.Instrument(level, cmd.String("log-format"))
+	err = observability.Instrument(cfg.LogLevel, string(cfg.LogFormat))
 	if err != nil {
 		return fmt.Errorf("failed to set up observability layer: %w", err)
 	}
 
-	application, err := app.New()
+	application, err := app.New(cfg)
 	if err != nil {
 		return fmt.Errorf("failed to create app: %w", err)
 	}
