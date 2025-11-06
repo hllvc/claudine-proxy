@@ -1,6 +1,6 @@
 module github.com/florianilch/claudine-proxy
 
-go 1.25.0
+go 1.25.3
 
 require (
 	github.com/go-chi/httplog/v3 v3.3.0
