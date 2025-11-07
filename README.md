@@ -10,7 +10,13 @@ Unlock your Claude Pro/Max subscription in any tool or library.
 
 ## Quick Start
 
-**1. Authenticate**
+**1. Install**
+
+Grab a pre-built binary for **Windows**, **macOS** or **Linux** from [Releases](https://github.com/florianilch/claudine-proxy/releases/latest).
+
+<a href="https://github.com/florianilch/claudine-proxy/releases/latest"><img src="https://img.shields.io/github/v/release/florianilch/claudine-proxy?style=flat&logo=GitHub"></a>
+
+**2. Authenticate**
 
 ```bash
 claudine auth login
@@ -18,7 +24,7 @@ claudine auth login
 
 This kicks off a one-time login with your Claude account. Just follow the link, authorize the app using your Claude Pro/Max account and paste the code. Done.
 
-**2. Run the Proxy**
+**3. Run the Proxy**
 
 ```bash
 claudine start
