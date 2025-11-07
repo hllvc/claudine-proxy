@@ -12,13 +12,16 @@ concurrency:
 permissions: {}
 
 jobs:
-  release:
-    name: Release
+  release-notes:
+    name: Generate release notes
     runs-on: ubuntu-24.04
 
-    timeout-minutes: 60
+    outputs:
+      release-notes: ${{ steps.release-notes.outputs.body }}
+
+    timeout-minutes: 30
     permissions:
-      contents: write # needed to write releases
+      contents: read
 
     steps:
       - name: Checkout
@@ -26,25 +29,51 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install git-cliff
+        run: |
+          VERSION="2.10.1"
+          cd "${RUNNER_TEMP}"
+          wget "https://github.com/orhun/git-cliff/releases/download/v${VERSION}/git-cliff-${VERSION}-x86_64-unknown-linux-gnu.tar.gz"
+          tar -xvzf git-cliff-${VERSION}-x86_64-unknown-linux-gnu.tar.gz
+          sudo mv git-cliff-${VERSION}/git-cliff /usr/local/bin/
+          git-cliff --version
+
+      - name: Generate release notes
+        id: release-notes
+        run: |
+          git-cliff -v -c cliff.config.toml --strip all --output release-notes.md --current
+          cat release-notes.md
+
+          {
+            echo 'body<<EOF'
+            cat release-notes.md
+            echo EOF
+          } >> $GITHUB_OUTPUT
+
+  release:
+    name: Release
+    runs-on: ubuntu-24.04
+    needs: [release-notes]
+
+    timeout-minutes: 60
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
 
-      - name: Install git-cliff
+      - name: Prepare release notes template
         run: |
-          version="2.10.1"
-          wget "https://github.com/orhun/git-cliff/releases/download/v${version}/git-cliff-${version}-x86_64-unknown-linux-gnu.tar.gz"
-          tar -xvzf git-cliff-${version}-x86_64-unknown-linux-gnu.tar.gz
-          sudo mv git-cliff-${version}/git-cliff /usr/local/bin/
-          rm git-cliff-${version}-x86_64-unknown-linux-gnu.tar.gz
-          rm -rf git-cliff-${version}/
-          git-cliff --version
-
-      - name: Generate release notes
-        run: |
-          git-cliff -v -c cliff.config.toml --strip all --output ${{ runner.temp }}/release-notes.md --current
-          cat ${{ runner.temp }}/release-notes.md
+          cat > "${RUNNER_TEMP}/release-notes.md" <<'EOF'
+          ${{ needs.release-notes.outputs.release-notes }}
+          EOF
+          cat "${RUNNER_TEMP}/release-notes.md"
 
       - name: Run GoReleaser
         env:
@@ -52,4 +81,4 @@ jobs:
         uses: goreleaser/goreleaser-action@v6
         with:
           version: '~> v2'
-          args: release --clean --release-notes ${{ runner.temp }}/release-notes.md
+          args: release --verbose --clean --draft --release-notes "${RUNNER_TEMP}/release-notes.md"
