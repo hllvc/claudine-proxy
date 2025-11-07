@@ -132,3 +132,7 @@ Claudine securely handles your auth details.
 
 *   A **Claude Pro** or **Claude Max** subscription.
 *   **To build from source:** Go 1.25+ with `GOEXPERIMENT=jsonv2` enabled.
+
+## Contributing
+
+We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
