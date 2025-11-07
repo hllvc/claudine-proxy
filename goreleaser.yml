@@ -6,7 +6,6 @@ project_name: claudine
 
 before:
   hooks:
-    # makes working tree dirty if something is off
     - go mod tidy
 
 builds:

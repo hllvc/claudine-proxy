@@ -75,6 +75,9 @@ jobs:
           EOF
           cat "${RUNNER_TEMP}/release-notes.md"
 
+      - name: Validate module dependencies
+        run: go mod tidy
+
       - name: Run GoReleaser
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
