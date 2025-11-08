@@ -1,4 +1,4 @@
-## Unreleased
+## 0.2.0 - 2025-11-08
 ### <!-- 0 -->Features
 - Make keyring the default storage
 - Add keyring as an additional storage type
