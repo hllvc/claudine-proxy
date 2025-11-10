@@ -1,3 +1,7 @@
+## Unreleased
+### <!-- 0 -->Features
+- Add OpenAI compatibility layer for `/chat/completions` to Anthropic’s Message API endpoint
+
 ## 0.2.0 - 2025-11-08
 ### <!-- 0 -->Features
 - Make keyring the default storage
