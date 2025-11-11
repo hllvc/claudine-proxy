@@ -1,3 +1,11 @@
+## Unreleased
+### <!-- 0 -->Features
+- Add observability layer with structured JSON logs with trace correlation using W3C trace context
+- Add basic readiness endpoints and shutdown delay for container orchestration and service management
+
+### <!-- 1 -->Fixes
+- Enforce maximum request body size to prevent memory exhaustion
+
 ## 0.3.0 - 2025-11-10
 ### <!-- 0 -->Features
 - Add OpenAI compatibility handler for creating chat completions
