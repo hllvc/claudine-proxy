@@ -1,4 +1,4 @@
-## Unreleased
+## 0.4.0 - 2025-11-11
 ### <!-- 0 -->Features
 - Add observability layer with structured JSON logs with trace correlation using W3C trace context
 - Add basic readiness endpoints and shutdown delay for container orchestration and service management
