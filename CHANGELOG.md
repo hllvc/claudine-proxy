@@ -3,6 +3,7 @@
 - Add static /v1/models endpoint for model discovery
 
 ### <!-- 1 -->Fixes
+- Unify error handling in proxy and OpenAI adapter with OpenAI-compatible format.
 - Return 413 status code when request size limit exceeded
 
 ## 0.4.0 - 2025-11-11
