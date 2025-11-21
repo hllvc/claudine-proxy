@@ -1,3 +1,7 @@
+## Unreleased
+### <!-- 0 -->Features
+- Add static /v1/models endpoint for model discovery
+
 ## 0.4.0 - 2025-11-11
 ### <!-- 0 -->Features
 - Add observability layer with structured JSON logs with trace correlation using W3C trace context
