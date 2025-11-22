@@ -1,4 +1,4 @@
-## Unreleased
+## 0.5.0 - 2025-11-22
 ### <!-- 0 -->Features
 - Add static /v1/models endpoint for model discovery
 
