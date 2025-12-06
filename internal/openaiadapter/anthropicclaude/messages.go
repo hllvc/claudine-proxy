@@ -399,14 +399,18 @@ func textFromAnthropicContentBlocks(content []anthropic.ContentBlockUnion) strin
 				texts = append(texts, variant.Text)
 			}
 		case anthropic.WebSearchToolResultBlock:
-			// Extract text representation from web search tool results
+			// Extract text representation from web search tool results as numbered links
 			// The Content field can contain an array of WebSearchResultBlocks
 			searchResults := variant.Content.AsWebSearchResultBlockArray()
-			for _, result := range searchResults {
-				if result.Title != "" && result.URL != "" {
-					searchResult := fmt.Sprintf("[%s](%s)", result.Title, result.URL)
-					texts = append(texts, searchResult)
+			var formattedResults []string
+			for i, result := range searchResults {
+				if result.URL != "" {
+					formattedResults = append(formattedResults, fmt.Sprintf("[%d](%s)", i+1, result.URL))
 				}
+			}
+			if len(formattedResults) > 0 {
+				// Join all numbered links with spaces on a single line
+				texts = append(texts, strings.Join(formattedResults, " "))
 			}
 			// If it's an error, the Content will have error details which we skip
 		case anthropic.ServerToolUseBlock:
