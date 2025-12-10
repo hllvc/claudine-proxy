@@ -1,4 +1,7 @@
 ## Unreleased
+### <!-- 0 -->Features
+- Enable extensible beta feature flags for clients
+
 ### <!-- 1 -->Fixes
 - Accept `budget_tokens` as string or number
 - Bump Go version to fix resource exhaustion vulnerabilities
